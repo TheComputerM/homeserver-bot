@@ -19,6 +19,7 @@ impl EventHandler for Handler {
             let content = match command.data.name.as_str() {
                 "ping" => commands::ping::run(&command.data.options),
                 "system" => commands::system::run(&command.data.options),
+                "run" => commands::run::run(&command.data.options),
                 _ => "not implemented :(".to_string(),
             };
 
@@ -47,6 +48,7 @@ impl EventHandler for Handler {
             commands
                 .create_application_command(|command| commands::ping::register(command))
                 .create_application_command(|command| commands::system::register(command))
+                .create_application_command(|command| commands::run::register(command))
         })
         .await;
 
