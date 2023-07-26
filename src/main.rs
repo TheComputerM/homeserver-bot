@@ -1,32 +1,76 @@
+mod commands;
+
 use dotenv::dotenv;
-use poise::serenity_prelude as serenity;
+use serenity::async_trait;
+use serenity::model::application::command::Command;
+use serenity::model::application::interaction::{Interaction, InteractionResponseType};
+use serenity::model::gateway::Ready;
+use serenity::prelude::*;
+use std::env;
 
-struct Data {} // User data, which is stored and accessible in all command invocations
-type Error = Box<dyn std::error::Error + Send + Sync>;
-type Context<'a> = poise::Context<'a, Data, Error>;
+struct Handler;
 
-#[poise::command(slash_command)]
-async fn system(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.say("TODO").await?;
-    Ok(())
+#[async_trait]
+impl EventHandler for Handler {
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        if let Interaction::ApplicationCommand(command) = interaction {
+            // println!("Received command interaction: {:#?}", command);
+
+            let content = match command.data.name.as_str() {
+                "ping" => commands::ping::run(&command.data.options),
+                "system" => commands::system::run(&command.data.options),
+                _ => "not implemented :(".to_string(),
+            };
+
+            if let Err(why) = command
+                .create_interaction_response(&ctx.http, |response| {
+                    response
+                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                        .interaction_response_data(|message| message.content(content))
+                })
+                .await
+            {
+                println!("Cannot respond to slash command: {}", why);
+            }
+        }
+    }
+
+    async fn ready(&self, ctx: Context, ready: Ready) {
+        println!("{} is connected!", ready.user.name);
+
+        let _ = Command::create_global_application_command(&ctx.http, |command| {
+            commands::ping::register(command)
+        })
+        .await;
+
+        let _ = Command::set_global_application_commands(&ctx.http, |commands| {
+            commands
+                .create_application_command(|command| commands::ping::register(command))
+                .create_application_command(|command| commands::system::register(command))
+        })
+        .await;
+
+        // println!("I created the following global slash command: {:#?}", guild_command);
+    }
 }
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-    let framework = poise::Framework::builder()
-        .options(poise::FrameworkOptions {
-            commands: vec![system()],
-            ..Default::default()
-        })
-        .token(std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN"))
-        .intents(serenity::GatewayIntents::non_privileged())
-        .setup(|ctx, _ready, framework| {
-            Box::pin(async move {
-                poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data {})
-            })
-        });
+    // Configure the client with your Discord bot token in the environment.
+    let token = env::var("DISCORD_TOKEN").expect("Expected a DISCORD_TOKEN in the environment");
 
-    framework.run().await.unwrap();
+    // Build our client.
+    let mut client = Client::builder(token, GatewayIntents::empty())
+        .event_handler(Handler)
+        .await
+        .expect("Error creating client");
+
+    // Finally, start a single shard, and start listening to events.
+    //
+    // Shards will automatically attempt to reconnect, and will perform
+    // exponential backoff until it reconnects.
+    if let Err(why) = client.start().await {
+        println!("Client error: {:?}", why);
+    }
 }

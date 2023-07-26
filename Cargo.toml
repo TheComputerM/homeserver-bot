@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 dotenv = "0.15.0"
 nixinfo = "0.3.3"
-poise = "0.5.5"
+serenity = {version = "0.11.6", default-features = false, features = ["client", "gateway", "rustls_backend", "model"]}
 tokio = {version = "1.29.1", features = ["macros", "rt-multi-thread"]}
