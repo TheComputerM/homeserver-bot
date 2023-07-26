@@ -21,7 +21,7 @@ pub fn run(options: &[CommandDataOption]) -> String {
                 format!("**Output:**\n{}", String::from_utf8_lossy(&output.stdout)),
                 format!("**Error:**\n{}", String::from_utf8_lossy(&output.stderr)),
             ]
-            .join("\n\n");
+            .join("\n-----------\n");
         } else {
             return "Error while running command".to_string();
         }
