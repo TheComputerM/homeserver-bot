@@ -20,6 +20,7 @@ impl EventHandler for Handler {
                 "ping" => commands::ping::run(&command.data.options),
                 "system" => commands::system::run(&command.data.options),
                 "run" => commands::run::run(&command.data.options),
+                "ip" => commands::ip::run(&command.data.options),
                 _ => "not implemented :(".to_string(),
             };
 
@@ -49,6 +50,7 @@ impl EventHandler for Handler {
                 .create_application_command(|command| commands::ping::register(command))
                 .create_application_command(|command| commands::system::register(command))
                 .create_application_command(|command| commands::run::register(command))
+                .create_application_command(|command| commands::ip::register(command))
         })
         .await;
 
