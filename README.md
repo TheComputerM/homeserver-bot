@@ -12,15 +12,18 @@ Use something like pm2 or a custom systemd service to start up the executable
 
 The homeserver-bot.service would look something like this:
 
-```toml
+```
 [Unit]
-Description=A discord bot to manage your server
+Description=Discord bot to get a server overview
+After=network.target
 
 [Service]
-User=<user e.g. root>
-WorkingDirectory=<directory_of_script e.g. /root>
-ExecStart=./homeserver-bot
+Type=idle
+User=<user>
+Environment="DISCORD_TOKEN=your_discord_token_here"
+ExecStart=/path/to/homeserver-bot
 Restart=always
+RestartSec=1
 
 [Install]
 WantedBy=multi-user.target
@@ -30,5 +33,5 @@ WantedBy=multi-user.target
 
 - `/ping`: to see if the server is alive.
 - `/system`: prints out information like uptime, temperature etc (basically neofetch)
-- `/run {command}`: runs a command in bash and shows the output
-- `/ip`: prints out the public IP/IPv6 and the local IP as well.
+- `/ip`: prints out the public and local IP/IPv6.
+- `/run {command}`: (*USE THIS CAREFULLY*) runs a command in bash and shows the output.
