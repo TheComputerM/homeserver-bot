@@ -1,12 +1,13 @@
 mod commands;
 
+use std::env;
+
 use dotenv::dotenv;
 use serenity::async_trait;
 use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
 use serenity::model::gateway::Ready;
 use serenity::prelude::*;
-use std::env;
 
 struct Handler;
 
@@ -14,13 +15,12 @@ struct Handler;
 impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::ApplicationCommand(command) = interaction {
-            // println!("Received command interaction: {:#?}", command);
+            println!("Received command interaction: {:#?}", command.data.name);
 
             let content = match command.data.name.as_str() {
                 "ping" => commands::ping::run(&command.data.options),
-                "system" => commands::system::run(&command.data.options),
-                "run" => commands::run::run(&command.data.options),
                 "ip" => commands::ip::run(&command.data.options),
+                "system" => commands::system::run(&command.data.options),
                 _ => "not implemented :(".to_string(),
             };
 
@@ -40,27 +40,21 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
 
-        let _ = Command::create_global_application_command(&ctx.http, |command| {
-            commands::ping::register(command)
-        })
-        .await;
-
+        
         let _ = Command::set_global_application_commands(&ctx.http, |commands| {
             commands
                 .create_application_command(|command| commands::ping::register(command))
-                .create_application_command(|command| commands::system::register(command))
-                .create_application_command(|command| commands::run::register(command))
                 .create_application_command(|command| commands::ip::register(command))
+                .create_application_command(|command| commands::system::register(command))
         })
         .await;
-
-        // println!("I created the following global slash command: {:#?}", guild_command);
     }
 }
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
+
     // Configure the client with your Discord bot token in the environment.
     let token = env::var("DISCORD_TOKEN").expect("Expected a DISCORD_TOKEN in the environment");
 
