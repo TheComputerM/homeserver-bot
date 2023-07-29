@@ -34,4 +34,3 @@ WantedBy=multi-user.target
 - `/ping`: to see if the server is alive.
 - `/system`: prints out information like uptime, temperature etc (basically neofetch)
 - `/ip`: prints out the public and local IP/IPv6.
-- `/run {command}`: (*USE THIS CAREFULLY*) runs a command in bash and shows the output.
